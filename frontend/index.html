@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Spam Detector</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 30px 50px;
+            border-radius: 12px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            width: 420px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #2575fc;
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: #1a5ad7;
+            transform: scale(1.05);
+        }
+
+        .response {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .response p {
+            margin: 10px 0;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .response .not-spam {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .response .spam {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Spam Detector</h1>
+        <textarea id="emailContent" placeholder="Paste your mail here"></textarea>
+        <button onclick="submitText()">Submit</button>
+        <div id="response" class="response"></div>
+    </div>
+
+    <script>
+        async function submitText() {
+            const emailContent = document.getElementById('emailContent').value;
+            const responseDiv = document.getElementById('response');
+
+            // Clear previous response
+            responseDiv.innerHTML = `<p>Processing...</p>`;
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: emailContent }),
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch response from the server.");
+                }
+
+                const result = await response.json();
+                const probabilities = result.probabilities;
+
+                responseDiv.innerHTML = `
+                    <p class="${result.prediction === 'spam' ? 'spam' : 'not-spam'}">
+                        Prediction: <strong>${result.prediction.toUpperCase()}</strong>
+                    </p>
+                    <p>Not Spam Probability: <strong>${(probabilities[0] * 100).toFixed(2)}%</strong></p>
+                    <p>Spam Probability: <strong>${(probabilities[1] * 100).toFixed(2)}%</strong></p>
+                `;
+            } catch (error) {
+                console.error(error);
+                responseDiv.innerHTML = `
+                    <p style="color: red;">Error processing your request. Please try again.</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
