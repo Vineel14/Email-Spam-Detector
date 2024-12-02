@@ -4,6 +4,7 @@ import json
 import numpy as np
 from feature_extractor import analyze_spam_text, scale_vector
 from flask_cors import CORS
+import os
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -11,11 +12,14 @@ app = Flask(__name__)
 # Enable CORS
 CORS(app)
 
+# Define base directory for relative paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Paths to saved models
-MODEL_DIR = "/home/vineel/Desktop/Email-Spam/models/"
-RF_MODEL_PATH = f"{MODEL_DIR}rf_model.joblib"
-NN_MODEL_PATH = f"{MODEL_DIR}nn_model.joblib"
-ENCODER_PATH = f"{MODEL_DIR}encoder.joblib"
+MODEL_DIR = os.path.join(BASE_DIR, "../models")
+RF_MODEL_PATH = os.path.join(MODEL_DIR, "rf_model.joblib")
+NN_MODEL_PATH = os.path.join(MODEL_DIR, "nn_model.joblib")
+ENCODER_PATH = os.path.join(MODEL_DIR, "encoder.joblib")
 
 # Load the models
 print("Loading models...")
@@ -25,7 +29,7 @@ encoder = joblib.load(ENCODER_PATH)   # OneHotEncoder
 print("Models loaded successfully.")
 
 # Load feature min and max values for scaling
-CONFIG_PATH = "/home/vineel/Desktop/Email-Spam/server/data/feature_min_max.json"
+CONFIG_PATH = os.path.join(BASE_DIR, "data/feature_min_max.json")
 with open(CONFIG_PATH, "r") as f:
     min_max_values = json.load(f)
 
@@ -33,7 +37,7 @@ feature_min = np.array(min_max_values["min"])
 feature_max = np.array(min_max_values["max"])
 
 # Load spam keywords and regex patterns
-SPAMBASE_NAMES_PATH = "/home/vineel/Desktop/Email-Spam/server/data/spambase.names"
+SPAMBASE_NAMES_PATH = os.path.join(BASE_DIR, "data/spambase.names")
 with open(SPAMBASE_NAMES_PATH, 'r') as file:
     spambase_names = file.readlines()
 
@@ -91,11 +95,9 @@ def predict():
         print(nn_probabilities)
 
         # Final prediction
-        # Adjusted threshold: Consider spam if spam probability > 0.2 (temporary debugging threshold)
         spam_probability = nn_probabilities[1]  # Probability of spam class (1)
         prediction = 1 if spam_probability > 0.2 else 0
 
-        # Step 6: Return the prediction result
         # Step 6: Return the prediction result
         result = {
             "input_text": text,
@@ -104,7 +106,6 @@ def predict():
         }
         return jsonify(result), 200
 
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -112,4 +113,3 @@ def predict():
 # Run the Flask app
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-

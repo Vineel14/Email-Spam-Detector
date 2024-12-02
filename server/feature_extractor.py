@@ -2,9 +2,13 @@ import re
 from collections import Counter
 import json
 import numpy as np
+import os
+
+# Define base directory for relative paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Load spam keywords from the spambase.names file
-file_path = "/home/vineel/Desktop/Email-Spam/server/data/spambase.names"  # Replace with the correct file path
+file_path = os.path.join(BASE_DIR, "data/spambase.names")  # Relative file path
 
 # Read and extract spam-related words and characters from the .names file
 with open(file_path, 'r') as file:
@@ -116,7 +120,8 @@ print("\nSize of Input Vector:")
 print(len(input_vector))
 
 # Load the min and max values from the JSON file
-with open("/home/vineel/Desktop/Email-Spam/server/data/feature_min_max.json", "r") as f:
+json_path = os.path.join(BASE_DIR, "data/feature_min_max.json")  # Relative path
+with open(json_path, "r") as f:
     min_max_values = json.load(f)
 
 feature_min = np.array(min_max_values["min"])  # Convert to numpy array
