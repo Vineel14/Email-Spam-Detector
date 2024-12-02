@@ -109,6 +109,9 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/")
+def home():
+    return "Email Spam Detection API is Live!", 200
 
 # Run the Flask app
 if __name__ == "__main__":
